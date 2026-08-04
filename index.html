@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alexandra's Classics Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f7f2e9;
+    --panel: #fffdf8;
+    --ink: #2c2620;
+    --ink-soft: #6b6155;
+    --ink-faint: #9a9083;
+    --line: #e4dccc;
+    --line-soft: #efe8da;
+    --accent: #8a5a3c;      /* warm oxblood-brown */
+    --accent-soft: #b98a5e;
+    --gold: #b08637;
+    --shadow: 0 1px 2px rgba(60,45,30,.05), 0 8px 24px rgba(60,45,30,.05);
+  }
+  [data-theme="dark"] {
+    --bg: #1a1713;
+    --panel: #221e18;
+    --ink: #ece4d6;
+    --ink-soft: #b3a893;
+    --ink-faint: #7d7365;
+    --line: #352f26;
+    --line-soft: #2b261f;
+    --accent: #cf9c6f;
+    --accent-soft: #b98a5e;
+    --gold: #d8ac5a;
+    --shadow: 0 1px 2px rgba(0,0,0,.2), 0 10px 30px rgba(0,0,0,.25);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
+    font-size: 19px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    transition: background .3s ease, color .3s ease;
+  }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 120px; }
+
+  /* ---------- Masthead ---------- */
+  header.masthead {
+    text-align: center;
+    padding: 64px 0 28px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .masthead .kicker {
+    font-size: 13px; letter-spacing: .32em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 18px;
+  }
+  .masthead h1 {
+    font-family: "Cormorant Garamond", "EB Garamond", serif;
+    font-weight: 600; font-size: 54px; line-height: 1.05; margin: 0;
+    letter-spacing: .01em;
+  }
+  .masthead .sub {
+    color: var(--ink-soft); font-style: italic; margin-top: 14px; font-size: 20px;
+  }
+  .masthead .stats {
+    margin-top: 20px; font-size: 14px; letter-spacing: .04em;
+    color: var(--ink-faint); text-transform: uppercase;
+  }
+  .masthead .stats b { color: var(--accent); font-weight: 600; }
+
+  .theme-toggle {
+    position: absolute; top: 20px; right: 0;
+    background: none; border: 1px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; width: 40px; height: 40px; cursor: pointer;
+    font-size: 17px; display: grid; place-items: center; transition: all .2s ease;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    padding: 18px 0 14px; margin-bottom: 8px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .search {
+    width: 100%; padding: 12px 18px; font-size: 18px;
+    font-family: inherit; color: var(--ink);
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; outline: none; transition: border .2s ease;
+  }
+  .search:focus { border-color: var(--accent-soft); }
+  .search::placeholder { color: var(--ink-faint); font-style: italic; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip {
+    font-family: inherit; font-size: 14.5px;
+    padding: 5px 14px; border-radius: 999px; cursor: pointer;
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--line); transition: all .18s ease; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--accent-soft); color: var(--accent); }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  [data-theme="dark"] .chip.active { color: #1a1713; }
+
+  .filter-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-top: 12px; flex-wrap: wrap;
+  }
+  .toggle-star {
+    font-family: inherit; font-size: 14.5px; cursor: pointer;
+    background: transparent; border: 1px solid var(--line); color: var(--ink-soft);
+    padding: 5px 14px; border-radius: 999px; transition: all .18s ease;
+  }
+  .toggle-star:hover { border-color: var(--gold); color: var(--gold); }
+  .toggle-star.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+  [data-theme="dark"] .toggle-star.active { color: #1a1713; }
+  .active-tag-note {
+    font-size: 14px; color: var(--ink-faint); font-style: italic;
+  }
+  .active-tag-note a { color: var(--accent); cursor: pointer; text-decoration: none; border-bottom: 1px dotted; }
+  .export-btn {
+    font-family: inherit; font-size: 13px; color: var(--ink-faint);
+    background: none; border: none; cursor: pointer; text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .export-btn:hover { color: var(--accent); }
+
+  /* ---------- Sections & Cards ---------- */
+  .section-head {
+    font-family: "Cormorant Garamond", serif; font-weight: 600;
+    font-size: 15px; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--accent); margin: 46px 0 6px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 10px;
+  }
+  .section-head .count { font-size: 12px; color: var(--ink-faint); letter-spacing: .1em; }
+
+  .book {
+    padding: 24px 2px 22px; border-bottom: 1px solid var(--line-soft);
+  }
+  .book:last-child { border-bottom: none; }
+  .book .top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .book h3 {
+    font-family: "Cormorant Garamond", serif; font-weight: 600;
+    font-size: 27px; line-height: 1.15; margin: 0; color: var(--ink);
+  }
+  .book .author { font-style: italic; color: var(--ink-soft); font-size: 19px; }
+  .book .stars { color: var(--gold); font-size: 15px; letter-spacing: 2px; }
+  .book .summary { margin: 10px 0 0; color: var(--ink); }
+
+  .progress-wrap { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .progress-bar { flex: 0 0 120px; height: 5px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent-soft); border-radius: 999px; }
+  .progress-label { font-size: 13px; color: var(--ink-faint); letter-spacing: .04em; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .tag {
+    font-size: 12.5px; color: var(--ink-soft); cursor: pointer;
+    background: var(--line-soft); padding: 3px 10px; border-radius: 6px;
+    transition: all .16s ease;
+  }
+  .tag:hover { background: var(--accent); color: #fff; }
+  [data-theme="dark"] .tag:hover { color: #1a1713; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 16px; }
+  .pdf-link {
+    font-size: 15px; color: var(--accent); text-decoration: none; font-weight: 500;
+    border-bottom: 1px solid var(--accent-soft); padding-bottom: 1px;
+  }
+  .pdf-link:hover { color: var(--accent-soft); }
+  .mini-btn {
+    font-family: inherit; font-size: 14px; cursor: pointer;
+    background: none; border: none; color: var(--ink-faint); padding: 0;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .mini-btn:hover { color: var(--accent); }
+
+  .note-area { margin-top: 14px; display: none; }
+  .note-area.open { display: block; }
+  .note-area textarea {
+    width: 100%; min-height: 80px; padding: 12px 14px; font-family: inherit;
+    font-size: 17px; line-height: 1.5; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: 10px; outline: none; resize: vertical;
+  }
+  .note-area textarea:focus { border-color: var(--accent-soft); }
+  .note-display {
+    margin-top: 12px; padding: 12px 16px; background: var(--panel);
+    border-left: 3px solid var(--accent-soft); border-radius: 0 8px 8px 0;
+    font-style: italic; color: var(--ink-soft); font-size: 17px; white-space: pre-wrap;
+  }
+  .note-label { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); font-style: normal; display: block; margin-bottom: 4px; }
+
+  .empty { text-align: center; color: var(--ink-faint); font-style: italic; padding: 80px 0; font-size: 21px; }
+
+  footer { text-align: center; margin-top: 70px; color: var(--ink-faint); font-size: 14px; font-style: italic; }
+
+  @media (max-width: 620px) {
+    body { font-size: 18px; }
+    .masthead h1 { font-size: 40px; }
+    .book h3 { font-size: 24px; }
+    .theme-toggle { position: static; margin: 0 auto 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <button class="theme-toggle" id="themeToggle" title="Toggle light / dark">☾</button>
+    <div class="kicker">A Personal Canon</div>
+    <h1>Alexandra's Classics Library</h1>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="controls">
+    <input type="text" class="search" id="search" placeholder="Search titles, authors, ideas…" />
+    <div class="chips" id="categoryChips"></div>
+    <div class="filter-row">
+      <button class="toggle-star" id="starToggle">✦ Priority only</button>
+      <span class="active-tag-note" id="tagNote"></span>
+      <button class="export-btn" id="exportBtn" title="Back up your PDF links & notes">Export my links &amp; notes</button>
+    </div>
+  </div>
+
+  <main id="library"></main>
+
+  <footer>Curated by Alexandra · Click any theme to explore · Notes &amp; PDF links save in your browser</footer>
+</div>
+
+<script>
+/* ============================================================
+   THE LIBRARY
+   To hard-code a PDF link permanently, add  "pdf": "https://…"
+   to a book below. You can also add links & notes live in the
+   browser (they save locally); use "Export" to back them up.
+   ============================================================ */
+const BOOKS = [
+  // ---------- Scripture & Patristics ----------
+  { id:"bible", title:"The Bible", author:"", cat:["Scripture & Patristics"], stars:0,
+    summary:"The foundation of the whole tradition, comprising law, poetry, prophecy, gospel, epistle, and apocalypse. Every other work in this library stands in conversation with it, whether in assent or in dissent, and draws from it the deepest of its questions.",
+    tags:["faith","covenant","redemption","love","history","God"] },
+  { id:"confessions", title:"Confessions", author:"Augustine", cat:["Scripture & Patristics"], stars:1, progress:20,
+    summary:"Augustine recounts his progress from sin and worldly ambition to conversion, addressing the whole narrative directly to God. It is the first true autobiography of the Western tradition, and remains among its most searching examinations of the self.",
+    tags:["faith","grace","memory","desire","conversion","self"] },
+  { id:"city-of-god", title:"City of God", author:"Augustine", cat:["Scripture & Patristics"], stars:1,
+    summary:"Composed in the aftermath of the sack of Rome, the work argues that the meaning of history is not political but eschatological, and that no earthly city can serve as the soul's true home. It sets the city of man against the city of God as the two loves that divide mankind.",
+    tags:["history","politics","faith","empire","providence","civilization"] },
+  { id:"free-choice", title:"On Free Choice of the Will", author:"Augustine", cat:["Scripture & Patristics"], stars:1,
+    summary:"A philosophical dialogue examining whether God bears responsibility for evil, and in what human freedom truly consists. It offers the most rigorous treatment the early Church produced of the relation between divine providence and the created will.",
+    tags:["free will","evil","reason","faith","philosophy","God"] },
+  { id:"incarnation", title:"On the Incarnation", author:"Athanasius", cat:["Scripture & Patristics"], stars:2,
+    summary:"An early and concise defense of why God assumed human nature: what was at stake in the Incarnation, and why redemption required precisely this means. C.S. Lewis judged it essential and commended it to modern readers.",
+    tags:["incarnation","faith","salvation","theology","Christ"] },
+  { id:"hildegard-letters", title:"Letters", author:"Hildegard of Bingen", cat:["Scripture & Patristics"], stars:2,
+    summary:"The correspondence of a twelfth-century Benedictine abbess who was also mystic, composer, and natural philosopher. Writing to popes, emperors, abbots, and ordinary nuns, she advises, rebukes, prophesies, and consoles with equal authority; she asked Bernard of Clairvaux to confirm her visions, and warned Frederick Barbarossa that his empire would fall should he fail to repent. The letters reveal a mind for which mystical vision and practical governance stood in no contradiction.",
+    tags:["mysticism","faith","prophecy","authority","medieval","women","church"] },
+
+  // ---------- Theology & Christian Thought ----------
+  { id:"pensees", title:"Pensées", author:"Blaise Pascal", cat:["Theology & Christian Thought"], stars:1,
+    summary:"The surviving fragments of an unfinished defense of the Christian religion, composed by the foremost scientific mind of his age. Among the most candid accounts ever written of doubt, of the wager, and of faith, it introduces his distinction between the geometric mind, which proceeds by system, and the intuitive mind, which grasps many subtle things at once.",
+    tags:["faith","reason","doubt","human nature","God","mathematics"] },
+  { id:"mere-christianity", title:"Mere Christianity", author:"C.S. Lewis", cat:["Theology & Christian Thought"], stars:1,
+    summary:"A reasoned case for Christian belief argued from first principles, originally delivered as wartime broadcasts upon the BBC. It remains the clearest introduction to Christian apologetics in the English language.",
+    tags:["faith","reason","morality","God","virtue"] },
+  { id:"weight-of-glory", title:"The Weight of Glory", author:"C.S. Lewis", cat:["Theology & Christian Thought"], stars:0,
+    summary:"A collection of essays and addresses. The title piece contends that what men take for a desire for beauty is in truth a longing for a good that no earthly thing can satisfy: a longing for glory itself.",
+    tags:["desire","beauty","faith","joy","glory","longing"] },
+  { id:"fear-and-trembling", title:"Fear and Trembling", author:"Søren Kierkegaard", cat:["Theology & Christian Thought"], stars:0,
+    summary:"A sustained meditation upon Abraham's readiness to sacrifice Isaac: what such obedience demands of faith, why it cannot be justified in ethical terms, and what it signifies that God should have asked it. Kierkegaard names this the suspension of the ethical.",
+    tags:["faith","ethics","obedience","paradox","God","sacrifice"] },
+  { id:"sickness-unto-death", title:"The Sickness Unto Death", author:"Søren Kierkegaard", cat:["Theology & Christian Thought"], stars:1,
+    summary:"A diagnosis of despair as the fundamental condition of man: not mere sorrow, but the failure to become oneself before God. Kierkegaard holds that faith alone can cure it.",
+    tags:["despair","faith","self","anxiety","God","freedom"] },
+  { id:"orthodoxy", title:"Orthodoxy", author:"G.K. Chesterton", cat:["Theology & Christian Thought"], stars:0,
+    summary:"Chesterton describes how he arrived at Christian belief by way of reason alone, and found the faith stranger, wilder, and more satisfying than any alternative he had weighed against it.",
+    tags:["faith","reason","paradox","tradition","joy","adventure"] },
+  { id:"letters-prison", title:"Letters and Papers from Prison", author:"Dietrich Bonhoeffer", cat:["Theology & Christian Thought"], stars:0,
+    summary:"Theological letters written from a Nazi prison in the months before the author's execution. They ask what faith can mean when God seems absent, and what form a Christianity come of age must take in the modern world.",
+    tags:["faith","suffering","freedom","God","courage","modernity"] },
+
+  // ---------- Greek & Classical ----------
+  { id:"symposium", title:"The Symposium", author:"Plato", cat:["Greek & Classical"], stars:0,
+    summary:"At a banquet, each guest delivers a speech upon the nature of love, until Socrates recounts what he learned from the priestess Diotima: that love is the desire for immortality by way of beauty, ascending from particular things to beauty itself.",
+    tags:["love","beauty","philosophy","soul","desire","immortality"] },
+  { id:"republic", title:"The Republic", author:"Plato", cat:["Greek & Classical"], stars:0,
+    summary:"Seeking to define justice, Socrates constructs an ideal city in speech and arrives at the rule of philosophers, the immortality of the soul, and the allegory of the cave, in which prisoners mistake shadows for reality. It is the founding work of political philosophy.",
+    tags:["justice","politics","philosophy","soul","truth","education"] },
+  { id:"politics-aristotle", title:"Politics", author:"Aristotle", cat:["Greek & Classical"], stars:0,
+    summary:"Man is by nature a political animal. Aristotle offers a systematic account of constitutions, justice, citizenship, and the ends for which cities exist, examining and criticizing every form of government known to him.",
+    tags:["politics","justice","community","freedom","law","human nature"] },
+  { id:"meditations", title:"Meditations", author:"Marcus Aurelius", cat:["Greek & Classical"], stars:0,
+    summary:"The private notebooks of a Roman emperor, addressed to himself and never intended for publication. They treat of duty, of mortality, and of equanimity, and of the Stoic distinction between what lies within our power and what does not.",
+    tags:["stoicism","virtue","mortality","duty","reason","self-discipline"] },
+
+  // ---------- Philosophy ----------
+  { id:"critique-pure-reason", title:"Critique of Pure Reason", author:"Immanuel Kant", cat:["Philosophy"], stars:0,
+    summary:"An inquiry into what reason can know by its own resources, apart from experience. The most important and most demanding work of modern philosophy, it redrew the boundaries of metaphysics and set forth the conditions under which knowledge is possible.",
+    tags:["reason","knowledge","metaphysics","mind","limits"] },
+  { id:"eichmann", title:"Eichmann in Jerusalem", author:"Hannah Arendt", cat:["Philosophy"], stars:0,
+    summary:"Reporting upon the trial of Adolf Eichmann, Arendt found not a monster but a functionary: a man of unsettling ordinariness who took part in mass murder through thoughtlessness and careerism rather than conviction. From this she drew her account of the banality of evil.",
+    tags:["evil","justice","totalitarianism","conscience","responsibility"] },
+
+  // ---------- Political Philosophy & Economics ----------
+  { id:"two-treatises", title:"Two Treatises of Government / A Letter Concerning Toleration", author:"John Locke", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"The philosophical foundation of liberal government: natural rights, the consent of the governed, and the right of resistance against tyranny, together with a defense of religious toleration as a matter of political principle.",
+    tags:["liberty","rights","government","consent","revolution","toleration"] },
+  { id:"common-sense", title:"Common Sense", author:"Thomas Paine", cat:["Political Philosophy & Economics"], stars:1,
+    summary:"The pamphlet that persuaded ordinary Americans that independence was not merely justified but self-evident. It is the most consequential work of political persuasion in American history.",
+    tags:["liberty","revolution","democracy","reason","independence"] },
+  { id:"reflections-france", title:"Reflections on the Revolution in France", author:"Edmund Burke", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"The first and greatest statement of the conservative disposition: an argument that abstract reason, applied to politics, destroys the inherited wisdom by which civilization subsists. Written in 1790, before the Terror confirmed its warnings.",
+    tags:["tradition","liberty","revolution","order","civilization"] },
+  { id:"democracy-in-america", title:"Democracy in America", author:"Alexis de Tocqueville", cat:["Political Philosophy & Economics"], stars:1,
+    summary:"A French aristocrat travels through the United States in 1831 and produces the most penetrating study of democratic society yet written: its virtues, its inclination toward a soft despotism, and the habits and institutions by which freedom is sustained.",
+    tags:["democracy","liberty","equality","community","tyranny","America"] },
+  { id:"on-liberty", title:"On Liberty", author:"John Stuart Mill", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"Mill advances the harm principle: that the sole legitimate ground for restraining individual freedom is the prevention of harm to others. It remains the classic defense of individual liberty against the power of both government and social conformity.",
+    tags:["liberty","individuality","democracy","reason","rights"] },
+  { id:"road-to-serfdom", title:"The Road to Serfdom", author:"F.A. Hayek", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"Central planning, however benevolent in intention, tends of necessity toward tyranny. Hayek pressed the argument during the Second World War, when it stood most against the current of opinion.",
+    tags:["liberty","tyranny","planning","markets","socialism"] },
+  { id:"constitution-of-liberty", title:"The Constitution of Liberty", author:"F.A. Hayek", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"A systematic defense of the liberal order: what liberty requires, what character the law must possess in order to protect it, and by what means free societies come to undermine their own freedom from within.",
+    tags:["liberty","law","spontaneous order","reason","civilization"] },
+  { id:"law-legislation-liberty", title:"Law, Legislation and Liberty", author:"F.A. Hayek", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"A work in three volumes distinguishing law, understood as an order discovered within human action, from legislation, understood as the deliberate imposition of will. It constitutes Hayek's fullest statement of political philosophy.",
+    tags:["liberty","law","spontaneous order","justice","reason"] },
+  { id:"capitalism-and-freedom", title:"Capitalism and Freedom", author:"Milton Friedman", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"Economic freedom is the necessary condition of political freedom. Friedman argues systematically for free markets and limited government, in terms addressed to the general reader.",
+    tags:["liberty","markets","government","freedom","economics"] },
+  { id:"wealth-of-nations", title:"The Wealth of Nations", author:"Adam Smith", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"An account of the division of labor, of the price mechanism, and of the manner in which free exchange produces prosperity. The founding work of economics, and still the most comprehensive description of how markets function.",
+    tags:["liberty","markets","prosperity","society","reason"] },
+  { id:"moral-sentiments", title:"Theory of Moral Sentiments", author:"Adam Smith", cat:["Political Philosophy & Economics"], stars:0, progress:20,
+    summary:"Before The Wealth of Nations, Smith argued that sympathy, the capacity to regard one's own conduct from another's vantage, is the foundation of the moral life. The two works are to be read as a single system.",
+    tags:["morality","sympathy","virtue","society","ethics","human nature"] },
+  { id:"human-action", title:"Human Action", author:"Ludwig von Mises", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"The systematic foundation of the Austrian school, deriving all economic phenomena from individual human choice under conditions of scarcity and uncertainty. Mises composed it in exile in New York.",
+    tags:["liberty","markets","reason","action","economics","Austrian"] },
+  { id:"money-bank-credit", title:"Money, Bank Credit, and Economic Cycles", author:"Jesús Huerta de Soto", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"The most comprehensive Austrian treatment of money, banking, and the business cycle. Proceeding from Roman and English law through economic theory, it mounts a complete case against fractional-reserve banking and the central banks that sustain it.",
+    tags:["money","markets","economics","banking","Austrian","liberty"] },
+  { id:"the-law", title:"The Law", author:"Frédéric Bastiat", cat:["Political Philosophy & Economics"], stars:1,
+    summary:"A brief pamphlet holding that law exists solely to protect individual rights, and that when turned to redistribution or the organization of society it becomes legalized plunder. It may be read in an afternoon and retained for a lifetime.",
+    tags:["liberty","law","rights","justice","government"] },
+  { id:"competition-entrepreneurship", title:"Competition and Entrepreneurship", author:"Israel Kirzner", cat:["Political Philosophy & Economics"], stars:1,
+    summary:"An account of the entrepreneur as the discoverer of opportunities hitherto unnoticed. It corrects the static models of equilibrium that had effaced the central actor of economic life.",
+    tags:["markets","entrepreneurship","knowledge","economics","Austrian"] },
+  { id:"economics-one-lesson", title:"Economics in One Lesson", author:"Henry Hazlitt", cat:["Political Philosophy & Economics"], stars:1,
+    summary:"Every economic fallacy, Hazlitt argues, arises from neglecting the unseen consequences of a policy. He demonstrates the point through many concrete examples, with unfailing clarity.",
+    tags:["economics","liberty","markets","reason","government"] },
+  { id:"capital-and-interest", title:"Capital and Interest", author:"Eugen von Böhm-Bawerk", cat:["Political Philosophy & Economics"], stars:1,
+    summary:"A theory of capital and of time preference: why interest exists, what it signifies in economic terms, and how the roundabout methods of production create value. The foundation of Austrian capital theory.",
+    tags:["economics","capital","time","markets","Austrian"] },
+  { id:"lectures-on-calvinism", title:"Lectures on Calvinism", author:"Abraham Kuyper", cat:["Political Philosophy & Economics"], stars:0,
+    summary:"Six lectures delivered at Princeton in 1898, arguing that Calvinism is not a theology merely but a complete system of life, a worldview bearing upon politics, science, and art alike. The most accessible entry to Kuyper's thought.",
+    tags:["faith","politics","culture","sphere sovereignty","Calvinism","worldview"] },
+
+  // ---------- Literature ----------
+  { id:"brothers-karamazov", title:"The Brothers Karamazov", author:"Fyodor Dostoevsky", cat:["Literature"], stars:0,
+    summary:"Three brothers, a murdered father, and every question that may be asked concerning God, freedom, suffering, and love. Widely held the greatest of novels, it contains the parable of the Grand Inquisitor, at once the most formidable challenge to Christ in literature and its most searching answer.",
+    tags:["faith","freedom","suffering","love","God","doubt","redemption"] },
+  { id:"grand-inquisitor", title:"The Grand Inquisitor", author:"Fyodor Dostoevsky", cat:["Literature"], stars:0,
+    summary:"The parable Ivan relates to Alyosha in The Brothers Karamazov, here taken on its own. Christ returns to Seville during the Inquisition and is arrested; the Inquisitor explains why the Church has amended his work, exchanging freedom for bread, mystery, and authority. Christ answers only with silence and a kiss.",
+    tags:["faith","freedom","authority","suffering","Christ","doubt","love"] },
+  { id:"the-idiot", title:"The Idiot", author:"Fyodor Dostoevsky", cat:["Literature"], stars:0,
+    summary:"A wholly good man, Christlike, innocent, and afflicted with epilepsy, is set loose in Russian society. Dostoevsky wished to portray a genuinely beautiful soul, and to ask whether such a person could survive the world as it is.",
+    tags:["goodness","beauty","faith","society","suffering","innocence"] },
+  { id:"ridiculous-man", title:"Dream of a Ridiculous Man", author:"Fyodor Dostoevsky", cat:["Literature"], stars:0,
+    summary:"A man resolves upon his own death, dreams of an uncorrupted world, and wakes convinced that everything has changed. In some thirty pages it gives one of the most concentrated statements of Dostoevsky's whole vision.",
+    tags:["faith","redemption","consciousness","love","hope","transformation"] },
+  { id:"white-nights", title:"White Nights and Other Stories", author:"Fyodor Dostoevsky", cat:["Literature"], stars:0,
+    summary:"Early stories, tender and melancholy, set amid the white summer nights of St. Petersburg. In the title tale a young dreamer falls in love, over four evenings, with a woman awaiting another man. Longing rendered in its purest form.",
+    tags:["love","loneliness","longing","beauty","youth","dream"] },
+  { id:"ivan-ilyich", title:"The Death of Ivan Ilyich", author:"Leo Tolstoy", cat:["Literature"], stars:2,
+    summary:"A high-court judge sustains a slight injury that proves mortal. Stripped of his office, his routines, and his social mask, he is compelled to ask whether any of it held meaning. A single peasant servant attends him with unaffected kindness, and in that contrast the whole meaning of the tale is disclosed.",
+    tags:["mortality","meaning","suffering","society","redemption","truth"] },
+  { id:"what-men-live-by", title:"What Men Live By", author:"Leo Tolstoy", cat:["Literature"], stars:2,
+    summary:"An angel cast down to earth must learn what sustains human life before he may return. Written in the register of a folk tale, wholly unpretentious, it is Tolstoy at his most tender.",
+    tags:["love","faith","grace","humanity","redemption","simplicity"] },
+  { id:"paradise-lost", title:"Paradise Lost", author:"John Milton", cat:["Literature"], stars:0,
+    summary:"The fall of Satan and the fall of man, and the greatest attempt in English to justify the ways of God to men. That Satan speaks in the most seductive voice in English verse is itself part of the argument.",
+    tags:["faith","freedom","fall","pride","redemption","God","evil"] },
+  { id:"life-is-a-dream", title:"Life is a Dream", author:"Pedro Calderón de la Barca", cat:["Literature"], stars:0,
+    summary:"A prince imprisoned from birth is granted a single day of freedom and power, that it may be seen whether he deserves them. The question at its center: if life be a dream, how then ought we to act? Calderón renders his answer in the prince's conduct.",
+    tags:["freedom","fate","identity","virtue","power","dream"] },
+  { id:"great-gatsby", title:"The Great Gatsby", author:"F. Scott Fitzgerald", cat:["Literature"], stars:0,
+    summary:"A self-made man destroys himself in pursuit of a dream that was always illusory. Fitzgerald renders the illusion beautiful, so that the reader may understand precisely why Gatsby could not relinquish it. The prose is inseparable from the argument.",
+    tags:["illusion","desire","society","identity","America","class"] },
+  { id:"jane-eyre", title:"Jane Eyre", author:"Charlotte Brontë", cat:["Literature"], stars:0,
+    summary:"An orphaned governess, without fortune, family, or station, asserts her moral and spiritual equality against every pressure that would deny it, including her own love for a man who would make her his mistress.",
+    tags:["independence","love","conscience","society","dignity","integrity"] },
+  { id:"moby-dick", title:"Moby Dick", author:"Herman Melville", cat:["Literature"], stars:0,
+    summary:"Captain Ahab's obsessive pursuit of the white whale becomes a meditation upon God, fate, nature, and the will that will admit no limit until it destroys itself and all around it.",
+    tags:["obsession","fate","God","nature","will","evil","meaning"] },
+  { id:"tale-of-two-cities", title:"A Tale of Two Cities", author:"Charles Dickens", cat:["Literature"], stars:1,
+    summary:"The French Revolution, set between London and Paris, and figured as resurrection and sacrifice. A dissipated and brilliant lawyer, who believes himself worthless, redeems his whole life in a single act of total self-giving.",
+    tags:["sacrifice","redemption","revolution","love","justice","resurrection"] },
+  { id:"narnia", title:"The Chronicles of Narnia", author:"C.S. Lewis", cat:["Literature"], stars:0,
+    summary:"A world entered through a wardrobe, in which the Christian story is retold by way of myth, of talking beasts, and of a lion who is not safe but is good. It is so composed that the meaning reaches the reader before he can defend himself against it.",
+    tags:["faith","courage","sacrifice","redemption","joy","myth"] },
+  { id:"gilead", title:"Gilead", author:"Marilynne Robinson", cat:["Literature"], stars:1,
+    summary:"A dying Congregationalist minister writes a long letter to the young son he knows he will not see grown, filled with theology, with memory, and with the ordinary particulars of a life spent in one place. A sustained meditation upon grace, upon light, and upon the wonder that anything exists at all.",
+    tags:["faith","grace","mortality","love","fatherhood","beauty","blessing"] },
+  { id:"the-stranger", title:"The Stranger", author:"Albert Camus", cat:["Literature"], stars:0,
+    summary:"In French Algeria a man kills another and is tried less for the killing than for his want of feeling at his mother's funeral. The most uncompromising statement of the absurd: that life holds no inherent meaning, and that society punishes those who decline to pretend otherwise.",
+    tags:["absurdity","meaning","death","society","alienation","freedom"] },
+  { id:"poet-in-new-york", title:"Poet in New York", author:"Federico García Lorca", cat:["Literature"], stars:1,
+    summary:"Lorca came to New York in 1929, in the year of the crash, and was undone by what he found: the alienation, the mechanization, the treatment of black Americans. The poems are surrealist, furious, and hallucinatory; nothing else in Spanish verse resembles them.",
+    tags:["alienation","modernity","beauty","suffering","race","longing"] },
+  { id:"much-ado", title:"Much Ado About Nothing", author:"William Shakespeare", cat:["Literature"], stars:0,
+    summary:"Two brilliant and quarreling wits, Beatrice and Benedick, fall in love while each insists it shall never happen. The most sparkling of Shakespeare's comedies, and beneath the wit a serious inquiry into pride, into honor, and into the self-knowledge that love requires.",
+    tags:["love","wit","pride","honor","society","deception"] },
+
+  // ---------- Poetry & Short Prose ----------
+  { id:"the-dead", title:"The Dead", author:"James Joyce", cat:["Poetry & Short Prose"], stars:0,
+    summary:"The final story of Dubliners. In the small hours a man stands at a window as snow falls over the whole of Ireland, and understands for the first time something of his wife, of love, and of the living and the dead. Commonly held the finest close in English prose.",
+    tags:["mortality","love","memory","beauty","longing","Ireland"] },
+  { id:"clean-well-lighted", title:"A Clean, Well-Lighted Place", author:"Ernest Hemingway", cat:["Poetry & Short Prose"], stars:1,
+    summary:"Two waiters wait for an old and deaf man to finish his drink so that they may close. In what the elder waiter thinks as he walks home alone lies everything Hemingway understood of loneliness, of age, and of the nothingness beneath ordinary life.",
+    tags:["loneliness","mortality","nothingness","age","meaning","dignity"] },
+  { id:"four-quartets", title:"Four Quartets", author:"T.S. Eliot", cat:["Poetry & Short Prose"], stars:0,
+    summary:"Four long poems upon time, memory, and the meeting of the eternal with history; explicitly Christian and formally exact. Man is bound within time, and his only release lies through the still point at which the temporal and the eternal intersect.",
+    tags:["time","faith","redemption","beauty","eternity","incarnation"] },
+  { id:"hopkins", title:"The Collected Poems", author:"Gerard Manley Hopkins", cat:["Poetry & Short Prose"], stars:0,
+    summary:"A Victorian Jesuit who devised his own prosody, which he called sprung rhythm, to answer his sense of God charging the natural world. The terrible sonnets that close the collection are among the most honest poems ever written upon the absence of God.",
+    tags:["faith","beauty","nature","God","suffering","language"] },
+  { id:"duino-elegies", title:"Duino Elegies & Sonnets to Orpheus", author:"Rainer Maria Rilke", cat:["Poetry & Short Prose"], stars:0,
+    summary:"The Elegies meditate upon what it is to be human: mortal, meaning-making, and suspended between the animal and the angel. The Sonnets, written in the same weeks, are lighter and more musical, and treat of praise as a mode of being in the world.",
+    tags:["mortality","beauty","love","meaning","praise","being"] },
+  { id:"letters-to-milena", title:"Letters to Milena", author:"Franz Kafka", cat:["Poetry & Short Prose"], stars:1,
+    summary:"Over two years, mostly at a distance and while dying of consumption, Kafka wrote to Milena Jesenská. The letters concern the impossibility of love as much as love itself: the terror of being truly known, and the failure of language at the very moment it is most needed.",
+    tags:["love","impossibility","language","mortality","longing","fear"] },
+
+  // ---------- Mathematics & Logic ----------
+  { id:"principia-mathematica", title:"Principia Mathematica", author:"Isaac Newton", cat:["Mathematics & Logic"], stars:0,
+    summary:"The laws of motion and of universal gravitation, derived by geometry. The work that created modern physics, and demonstrated that nature is governed by mathematical law.",
+    tags:["mathematics","nature","reason","motion","law","science"] },
+  { id:"godels-proof", title:"Gödel's Proof", author:"Ernest Nagel & James Newman", cat:["Mathematics & Logic","Philosophy"], stars:0,
+    summary:"A brief and lucid account of Gödel's incompleteness theorems: what they establish, how the proof proceeds, and why they bear upon mathematics and upon the limits of formal systems everywhere.",
+    tags:["mathematics","logic","limits","truth","incompleteness"] },
+  { id:"emperors-new-mind", title:"The Emperor's New Mind", author:"Roger Penrose", cat:["Mathematics & Logic","Philosophy"], stars:0,
+    summary:"Consciousness, Penrose argues, cannot be accounted for by computation. He reasons from Gödel outward to quantum mechanics, in the most rigorous scientific challenge yet posed to the claims of artificial intelligence.",
+    tags:["consciousness","mathematics","mind","limits","Gödel"] },
+  { id:"proofs-from-the-book", title:"Proofs from THE BOOK", author:"Martin Aigner & Günter Ziegler", cat:["Mathematics & Logic"], stars:0,
+    summary:"Erdős held that God keeps a book containing the most beautiful proof of every theorem. This is an attempt to reconstruct it, the proofs chosen for elegance and for surprise alone.",
+    tags:["mathematics","beauty","truth","reason","elegance","proof"] },
+  { id:"mathematicians-apology", title:"A Mathematician's Apology", author:"G.H. Hardy", cat:["Mathematics & Logic"], stars:1,
+    summary:"A great mathematician reflects upon what mathematics is, and upon why beauty, and not utility, is its only true measure. Brief and melancholy, it was written when Hardy knew his creative powers to be failing.",
+    tags:["mathematics","beauty","truth","reason","mortality","elegance"] },
+  { id:"surreal-numbers", title:"Surreal Numbers", author:"Donald Knuth", cat:["Mathematics & Logic"], stars:0,
+    summary:"Two figures upon a beach discover Conway's system of surreal numbers as the reader watches, the whole cast as a Socratic dialogue. A singular thing: a mathematical discovery told in the form of a story of discovery.",
+    tags:["mathematics","discovery","foundations","reason","beauty","numbers"] },
+  { id:"naive-set-theory", title:"Naive Set Theory", author:"Paul Halmos", cat:["Mathematics & Logic"], stars:1,
+    summary:"A slender and elegant treatment of set theory that reads almost as philosophy: precise, clean, and rigorous, yet never merely mechanical.",
+    tags:["mathematics","logic","foundations","reason","infinity","sets"] },
+  { id:"content-methods-meaning", title:"Mathematics: Its Content, Methods and Meaning", author:"Alexandrov, Kolmogorov, Lavrentiev", cat:["Mathematics & Logic"], stars:0,
+    summary:"Three Soviet mathematicians write for the intelligent non-specialist upon what the whole of mathematics is, from arithmetic through topology to probability. Remarkable alike in its scope and in its seriousness.",
+    tags:["mathematics","reason","truth","foundations","beauty","survey"] },
+];
+
+const CATEGORY_ORDER = [
+  "Scripture & Patristics",
+  "Theology & Christian Thought",
+  "Greek & Classical",
+  "Philosophy",
+  "Political Philosophy & Economics",
+  "Literature",
+  "Poetry & Short Prose",
+  "Mathematics & Logic",
+];
+
+/* ---------- Local storage (PDF links + notes) ---------- */
+const STORE_KEY = "classics-library-user-data";
+function loadUserData() { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } }
+function saveUserData(d) { localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+let userData = loadUserData();
+
+function getPdf(b)  { return (userData[b.id] && userData[b.id].pdf) || b.pdf || ""; }
+function getNote(b) { return (userData[b.id] && userData[b.id].note) || ""; }
+function setUser(id, key, val) {
+  userData[id] = userData[id] || {};
+  if (val) userData[id][key] = val; else delete userData[id][key];
+  if (Object.keys(userData[id]).length === 0) delete userData[id];
+  saveUserData(userData);
+}
+
+/* ---------- State ---------- */
+let activeCat = "All";
+let activeTag = null;
+let starOnly = false;
+let query = "";
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const starMark = n => "✦".repeat(n);
+
+/* ---------- Render ---------- */
+function matches(b) {
+  if (activeCat !== "All" && !b.cat.includes(activeCat)) return false;
+  if (starOnly && !b.stars) return false;
+  if (activeTag && !b.tags.includes(activeTag)) return false;
+  if (query) {
+    const hay = (b.title + " " + b.author + " " + b.summary + " " + b.tags.join(" ") + " " + getNote(b)).toLowerCase();
+    if (!hay.includes(query)) return false;
+  }
+  return true;
+}
+
+function bookHTML(b) {
+  const pdf = getPdf(b), note = getNote(b);
+  const stars = b.stars ? `<span class="stars" title="Priority">${starMark(b.stars)}</span>` : "";
+  const author = b.author ? `<span class="author">${esc(b.author)}</span>` : "";
+  const progress = b.progress ? `
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" style="width:${b.progress}%"></div></div>
+      <span class="progress-label">${b.progress}% read</span>
+    </div>` : "";
+  const tags = `<div class="tags">${b.tags.map(t => `<span class="tag" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</div>`;
+  const pdfLink = pdf
+    ? `<a class="pdf-link" href="${esc(pdf)}" target="_blank" rel="noopener">Read PDF →</a>
+       <button class="mini-btn" data-act="pdf" data-id="${b.id}">edit link</button>`
+    : `<button class="mini-btn" data-act="pdf" data-id="${b.id}">+ Add PDF link</button>`;
+  const noteDisplay = note ? `<div class="note-display"><span class="note-label">My note</span>${esc(note)}</div>` : "";
+  return `
+  <article class="book" id="${b.id}">
+    <div class="top"><h3>${esc(b.title)}</h3>${author}${stars}</div>
+    <p class="summary">${esc(b.summary)}</p>
+    ${progress}
+    ${tags}
+    <div class="actions">
+      ${pdfLink}
+      <button class="mini-btn" data-act="note" data-id="${b.id}">${note ? "edit note" : "+ Add note"}</button>
+    </div>
+    <div class="note-area" data-note-for="${b.id}">
+      <textarea placeholder="Your thoughts, annotations, where you left off…">${esc(note)}</textarea>
+    </div>
+    ${noteDisplay}
+  </article>`;
+}
+
+function render() {
+  const root = document.getElementById("library");
+  const visible = BOOKS.filter(matches);
+  if (visible.length === 0) {
+    root.innerHTML = `<div class="empty">No books match. Try clearing filters.</div>`;
+    return;
+  }
+  let html = "";
+  for (const cat of CATEGORY_ORDER) {
+    const inCat = visible.filter(b => b.cat.includes(cat));
+    if (inCat.length === 0) continue;
+    html += `<h2 class="section-head">${esc(cat)} <span class="count">${inCat.length}</span></h2>`;
+    html += inCat.map(bookHTML).join("");
+  }
+  root.innerHTML = html;
+}
+
+/* ---------- Chips & stats ---------- */
+function buildChips() {
+  const el = document.getElementById("categoryChips");
+  const cats = ["All", ...CATEGORY_ORDER];
+  el.innerHTML = cats.map(c =>
+    `<button class="chip${c===activeCat?" active":""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("");
+}
+function updateStats() {
+  const total = BOOKS.length;
+  const starred = BOOKS.filter(b => b.stars).length;
+  const started = BOOKS.filter(b => b.progress).length;
+  document.getElementById("stats").innerHTML =
+    `<b>${total}</b> works · <b>${CATEGORY_ORDER.length}</b> traditions · <b>${starred}</b> priority · <b>${started}</b> in progress`;
+}
+function updateTagNote() {
+  const el = document.getElementById("tagNote");
+  el.innerHTML = activeTag
+    ? `Filtering by theme <a id="clearTag">“${esc(activeTag)}” ✕</a>`
+    : "";
+  const c = document.getElementById("clearTag");
+  if (c) c.onclick = () => { activeTag = null; updateTagNote(); render(); };
+}
+
+/* ---------- Events ---------- */
+document.getElementById("search").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); render(); });
+
+document.getElementById("categoryChips").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if (!c) return;
+  activeCat = c.dataset.cat; buildChips(); render();
+});
+
+document.getElementById("starToggle").addEventListener("click", e => {
+  starOnly = !starOnly; e.target.classList.toggle("active", starOnly); render();
+});
+
+document.getElementById("library").addEventListener("click", e => {
+  const tag = e.target.closest(".tag");
+  if (tag) { activeTag = tag.dataset.tag; updateTagNote(); render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+
+  const btn = e.target.closest(".mini-btn");
+  if (!btn) return;
+  const id = btn.dataset.id, act = btn.dataset.act;
+
+  if (act === "pdf") {
+    const b = BOOKS.find(x => x.id === id);
+    const cur = getPdf(b);
+    const url = prompt(`PDF link for “${b.title}”:`, cur);
+    if (url !== null) { setUser(id, "pdf", url.trim()); render(); }
+  }
+  if (act === "note") {
+    const area = document.querySelector(`.note-area[data-note-for="${id}"]`);
+    const open = area.classList.toggle("open");
+    if (open) {
+      const ta = area.querySelector("textarea");
+      ta.focus();
+      ta.onblur = () => { setUser(id, "note", ta.value.trim()); render(); };
+    }
+  }
+});
+
+/* ---------- Export backup ---------- */
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const data = JSON.stringify(userData, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "classics-library-backup.json";
+  a.click();
+});
+
+/* ---------- Theme ---------- */
+const themeBtn = document.getElementById("themeToggle");
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  themeBtn.textContent = t === "dark" ? "☀" : "☾";
+  localStorage.setItem("classics-library-theme", t);
+}
+themeBtn.addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(cur);
+});
+applyTheme(localStorage.getItem("classics-library-theme") || "light");
+
+/* ---------- Init ---------- */
+buildChips();
+updateStats();
+render();
+</script>
+</body>
+</html>
