@@ -144,6 +144,12 @@
     text-underline-offset: 3px;
   }
   .export-btn:hover { color: var(--accent); }
+  .sync-status {
+    font-size: 13px; color: var(--ink-faint); letter-spacing: .02em; font-style: italic;
+    margin-left: auto; padding-right: 4px;
+  }
+  .sync-status[data-state="synced"] { color: var(--accent-soft); }
+  .sync-status[data-state="offline"] { color: #b06a4a; }
 
   /* ---------- Sections & Cards ---------- */
   .section-head {
@@ -273,6 +279,7 @@
     <div class="filter-row">
       <button class="toggle-star" id="starToggle">✦ Priority only</button>
       <span class="active-tag-note" id="tagNote"></span>
+      <span class="sync-status" id="syncStatus"></span>
       <button class="export-btn" id="exportBtn" title="Back up your PDF links & notes">Export my links &amp; notes</button>
     </div>
   </div>
@@ -531,6 +538,62 @@ function loadUserData() { try { return JSON.parse(localStorage.getItem(STORE_KEY
 function saveUserData(d) { localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
 let userData = loadUserData();
 
+/* ============================================================
+   CLOUD SYNC (Supabase) — paste your two values below.
+   Leave them blank to run in local-only mode (no sync).
+   ============================================================ */
+const SUPABASE_URL  = "";   // e.g. "https://abcd1234.supabase.co"
+const SUPABASE_ANON = "";   // the "anon public" API key
+const CLOUD_ROW = "alexandra";
+const cloudOn = () => SUPABASE_URL && SUPABASE_ANON;
+function cloudHeaders(extra) {
+  return Object.assign({
+    apikey: SUPABASE_ANON,
+    Authorization: "Bearer " + SUPABASE_ANON,
+    "Content-Type": "application/json",
+  }, extra || {});
+}
+function setSync(state) {
+  const el = document.getElementById("syncStatus");
+  if (!el) return;
+  if (!cloudOn()) { el.textContent = ""; return; }
+  el.dataset.state = state;
+  el.textContent = { saving: "Saving…", synced: "Synced ✓", offline: "Offline — saved on this device" }[state] || "";
+}
+async function cloudLoad() {
+  if (!cloudOn()) return;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/library_state?id=eq.${CLOUD_ROW}&select=data`, { headers: cloudHeaders() });
+    if (!r.ok) throw new Error(r.status);
+    const rows = await r.json();
+    if (rows.length && rows[0].data) {
+      userData = rows[0].data;
+      saveUserData(userData);   // cache locally
+      render();
+    } else if (Object.keys(userData).length) {
+      cloudSave();              // first run: seed the cloud from this device
+    }
+    setSync("synced");
+  } catch (e) { setSync("offline"); }
+}
+let cloudTimer = null;
+function cloudSave() {
+  if (!cloudOn()) return;
+  setSync("saving");
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/library_state`, {
+        method: "POST",
+        headers: cloudHeaders({ Prefer: "resolution=merge-duplicates,return=minimal" }),
+        body: JSON.stringify({ id: CLOUD_ROW, data: userData, updated_at: new Date().toISOString() }),
+      });
+      if (!r.ok) throw new Error(r.status);
+      setSync("synced");
+    } catch (e) { setSync("offline"); }
+  }, 700);
+}
+
 function getPdf(b)  { return (userData[b.id] && userData[b.id].pdf) || b.pdf || ""; }
 function getNote(b) { return (userData[b.id] && userData[b.id].note) || ""; }
 function getStars(b)    { const u = userData[b.id]; return (u && u.stars != null)    ? u.stars    : (b.stars || 0); }
@@ -541,12 +604,14 @@ function setUser(id, key, val) {
   if (val) userData[id][key] = val; else delete userData[id][key];
   if (Object.keys(userData[id]).length === 0) delete userData[id];
   saveUserData(userData);
+  cloudSave();
 }
 // stores numeric/boolean values verbatim (including 0 and false), unlike setUser
 function setField(id, key, val) {
   userData[id] = userData[id] || {};
   userData[id][key] = val;
   saveUserData(userData);
+  cloudSave();
 }
 
 /* ---------- State ---------- */
@@ -756,6 +821,8 @@ applyTheme(localStorage.getItem("classics-library-theme") || "light");
 buildChips();
 updateStats();
 render();
+cloudLoad();
+window.addEventListener("focus", cloudLoad);
 </script>
 </body>
 </html>
