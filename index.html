@@ -209,6 +209,35 @@
   }
   .note-label { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); font-style: normal; display: block; margin-bottom: 4px; }
 
+  .read-badge {
+    font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #fff;
+    background: var(--accent-soft); padding: 2px 9px; border-radius: 999px; align-self: center;
+  }
+  [data-theme="dark"] .read-badge { color: #1a1713; }
+
+  .edit-area {
+    margin-top: 14px; display: none; padding: 14px 18px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  }
+  .edit-area.open { display: block; }
+  .edit-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+  .edit-row .lbl {
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-faint); flex: 0 0 74px;
+  }
+  .pri-btn {
+    font-family: inherit; font-size: 14px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--ink-soft);
+    border-radius: 999px; padding: 3px 13px; transition: all .16s ease;
+  }
+  .pri-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .pri-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+  [data-theme="dark"] .pri-btn.active { color: #1a1713; }
+  .edit-range { flex: 1 1 180px; accent-color: var(--accent); cursor: pointer; }
+  .edit-pct { font-size: 14px; color: var(--ink-soft); flex: 0 0 42px; text-align: right; font-variant-numeric: tabular-nums; }
+  .read-check { display: flex; align-items: center; gap: 8px; font-size: 17px; color: var(--ink); cursor: pointer; }
+  .read-check input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+
   .empty { text-align: center; color: var(--ink-faint); font-style: italic; padding: 80px 0; font-size: 21px; }
 
   footer { text-align: center; margin-top: 70px; color: var(--ink-faint); font-size: 14px; font-style: italic; }
@@ -498,10 +527,19 @@ let userData = loadUserData();
 
 function getPdf(b)  { return (userData[b.id] && userData[b.id].pdf) || b.pdf || ""; }
 function getNote(b) { return (userData[b.id] && userData[b.id].note) || ""; }
+function getStars(b)    { const u = userData[b.id]; return (u && u.stars != null)    ? u.stars    : (b.stars || 0); }
+function getProgress(b) { const u = userData[b.id]; return (u && u.progress != null) ? u.progress : (b.progress || 0); }
+function getRead(b)     { const u = userData[b.id]; return !!(u && u.read); }
 function setUser(id, key, val) {
   userData[id] = userData[id] || {};
   if (val) userData[id][key] = val; else delete userData[id][key];
   if (Object.keys(userData[id]).length === 0) delete userData[id];
+  saveUserData(userData);
+}
+// stores numeric/boolean values verbatim (including 0 and false), unlike setUser
+function setField(id, key, val) {
+  userData[id] = userData[id] || {};
+  userData[id][key] = val;
   saveUserData(userData);
 }
 
@@ -510,6 +548,7 @@ let activeCat = "All";
 let activeTag = null;
 let starOnly = false;
 let query = "";
+const openEdit = new Set();
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const starMark = n => "✦".repeat(n);
@@ -517,7 +556,7 @@ const starMark = n => "✦".repeat(n);
 /* ---------- Render ---------- */
 function matches(b) {
   if (activeCat !== "All" && !b.cat.includes(activeCat)) return false;
-  if (starOnly && !b.stars) return false;
+  if (starOnly && !getStars(b)) return false;
   if (activeTag && !b.tags.includes(activeTag)) return false;
   if (query) {
     const hay = (b.title + " " + b.author + " " + b.summary + " " + b.tags.join(" ") + " " + getNote(b)).toLowerCase();
@@ -528,12 +567,14 @@ function matches(b) {
 
 function bookHTML(b) {
   const pdf = getPdf(b), note = getNote(b);
-  const stars = b.stars ? `<span class="stars" title="Priority">${starMark(b.stars)}</span>` : "";
+  const st = getStars(b), pg = getProgress(b), read = getRead(b);
+  const stars = st ? `<span class="stars" title="Priority">${starMark(st)}</span>` : "";
+  const readBadge = read ? `<span class="read-badge">Read</span>` : "";
   const author = b.author ? `<span class="author">${esc(b.author)}</span>` : "";
-  const progress = b.progress ? `
+  const progress = pg ? `
     <div class="progress-wrap">
-      <div class="progress-bar"><div class="progress-fill" style="width:${b.progress}%"></div></div>
-      <span class="progress-label">${b.progress}% read</span>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pg}%"></div></div>
+      <span class="progress-label">${pg}% read</span>
     </div>` : "";
   const tags = `<div class="tags">${b.tags.map(t => `<span class="tag" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</div>`;
   const pdfLink = pdf
@@ -541,18 +582,32 @@ function bookHTML(b) {
        <button class="mini-btn" data-act="pdf" data-id="${b.id}">edit link</button>`
     : `<button class="mini-btn" data-act="pdf" data-id="${b.id}">+ Add PDF link</button>`;
   const noteDisplay = note ? `<div class="note-display"><span class="note-label">My note</span>${esc(note)}</div>` : "";
+  const editOpen = openEdit.has(b.id) ? " open" : "";
+  const priBtns = [0,1,2].map(n =>
+    `<button class="pri-btn${n===st?" active":""}" data-act="pri" data-id="${b.id}" data-val="${n}">${n===0?"None":starMark(n)}</button>`).join("");
   return `
   <article class="book" id="${b.id}">
-    <div class="top"><h3>${esc(b.title)}</h3>${author}${stars}</div>
+    <div class="top"><h3>${esc(b.title)}</h3>${author}${stars}${readBadge}</div>
     <p class="summary">${esc(b.summary)}</p>
     ${progress}
     ${tags}
     <div class="actions">
       ${pdfLink}
       <button class="mini-btn" data-act="note" data-id="${b.id}">${note ? "edit note" : "+ Add note"}</button>
+      <button class="mini-btn" data-act="edit" data-id="${b.id}">${editOpen ? "close" : "✎ edit"}</button>
     </div>
     <div class="note-area" data-note-for="${b.id}">
       <textarea placeholder="Your thoughts, annotations, where you left off…">${esc(note)}</textarea>
+    </div>
+    <div class="edit-area${editOpen}" data-edit-for="${b.id}">
+      <div class="edit-row"><span class="lbl">Priority</span>${priBtns}</div>
+      <div class="edit-row"><span class="lbl">Progress</span>
+        <input type="range" class="edit-range" min="0" max="100" step="1" value="${pg}" data-id="${b.id}" aria-label="Percent read" />
+        <span class="edit-pct" data-pct="${b.id}">${pg}%</span>
+      </div>
+      <div class="edit-row"><span class="lbl">Status</span>
+        <label class="read-check"><input type="checkbox" data-act="read" data-id="${b.id}" ${read ? "checked" : ""} /> Mark as read</label>
+      </div>
     </div>
     ${noteDisplay}
   </article>`;
@@ -573,6 +628,7 @@ function render() {
     html += inCat.map(bookHTML).join("");
   }
   root.innerHTML = html;
+  updateStats();
 }
 
 /* ---------- Chips & stats ---------- */
@@ -584,10 +640,11 @@ function buildChips() {
 }
 function updateStats() {
   const total = BOOKS.length;
-  const starred = BOOKS.filter(b => b.stars).length;
-  const started = BOOKS.filter(b => b.progress).length;
+  const priority = BOOKS.filter(b => getStars(b) > 0).length;
+  const reading = BOOKS.filter(b => getProgress(b) > 0 && !getRead(b)).length;
+  const read = BOOKS.filter(b => getRead(b)).length;
   document.getElementById("stats").innerHTML =
-    `<b>${total}</b> works · <b>${CATEGORY_ORDER.length}</b> traditions · <b>${starred}</b> priority · <b>${started}</b> in progress`;
+    `<b>${total}</b> works · <b>${CATEGORY_ORDER.length}</b> traditions · <b>${priority}</b> priority · <b>${reading}</b> reading · <b>${read}</b> read`;
 }
 function updateTagNote() {
   const el = document.getElementById("tagNote");
@@ -614,6 +671,9 @@ document.getElementById("library").addEventListener("click", e => {
   const tag = e.target.closest(".tag");
   if (tag) { activeTag = tag.dataset.tag; updateTagNote(); render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
 
+  const pri = e.target.closest(".pri-btn");
+  if (pri) { setField(pri.dataset.id, "stars", +pri.dataset.val); render(); return; }
+
   const btn = e.target.closest(".mini-btn");
   if (!btn) return;
   const id = btn.dataset.id, act = btn.dataset.act;
@@ -633,6 +693,34 @@ document.getElementById("library").addEventListener("click", e => {
       ta.onblur = () => { setUser(id, "note", ta.value.trim()); render(); };
     }
   }
+  if (act === "edit") {
+    if (openEdit.has(id)) openEdit.delete(id); else openEdit.add(id);
+    render();
+  }
+});
+
+// live progress slider: update the readout and card bar without a full re-render
+document.getElementById("library").addEventListener("input", e => {
+  const r = e.target.closest(".edit-range");
+  if (!r) return;
+  const id = r.dataset.id, val = +r.value;
+  setField(id, "progress", val);
+  const pct = document.querySelector(`[data-pct="${id}"]`);
+  if (pct) pct.textContent = val + "%";
+  const card = document.getElementById(id);
+  const fill = card && card.querySelector(".progress-fill");
+  const lab = card && card.querySelector(".progress-label");
+  if (fill) fill.style.width = val + "%";
+  if (lab) lab.textContent = val + "% read";
+  updateStats();
+});
+
+// commit read toggle and finalize slider (adds/removes the bar, syncs badges)
+document.getElementById("library").addEventListener("change", e => {
+  const chk = e.target.closest('input[data-act="read"]');
+  if (chk) { setField(chk.dataset.id, "read", chk.checked); render(); return; }
+  const r = e.target.closest(".edit-range");
+  if (r) { setField(r.dataset.id, "progress", +r.value); render(); }
 });
 
 /* ---------- Export backup ---------- */
